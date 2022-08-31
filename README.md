@@ -3,7 +3,7 @@
 Plainsight is a steganographic tool to produce genuine-looking message.
 Transition between words are used to encode bits.
 
-A detailed blog post is available [here](https://japoneris.neocities.org/tech/2022-09-01-plainsight_v2.html)
+A detailed blog post is available [here](https://japoneris.neocities.org/tech/2022/09/01/plainsight_v2.html).
 
 
 ## Previous version
@@ -17,7 +17,7 @@ I found two (three) issues:
 - Encoding shortcuts: the script works with a tree that describes n-grams learned over a corpus. Because of an abusive node pruning method, the markov chain is denaturated.
 - Difficulty to understand the previous code (no documentation + too many pointers manipulation)
 
-The two first issues are described and illustrated in the associated [blog post](https://japoneris.neocities.org/tech/2022-09-01-plainsight_v2.html).
+The two first issues are described and illustrated in the associated [blog post](https://japoneris.neocities.org/tech/2022/09/01/plainsight_v2.html).
 The goals of this re-implementation are:
 
 - to make the outputs language-independent
@@ -34,10 +34,6 @@ The goals of this re-implementation are:
 There is no need for external libraries.
 
 To make the script executable without `python` prefixing, do: `chmod +x run.py`
-
-
-
-The  script without installation.
 
 
 
@@ -183,8 +179,3 @@ It removes:
 - special characters
 
 
-
-# TODO 
-
-- [ ] Finish explanation post 
-- [ ] Use math module instead of numpy
