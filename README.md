@@ -11,18 +11,16 @@ A detailed blog post is available [here](https://japoneris.neocities.org/tech/20
 
 A previous version of [plainsight](https://github.com/rw/plainsight) already exists.
 
-I found two (three) issues:
+I found two issues:
 
 - It is coded in `python2`, and at some point the result depends on python2, i.e. it is not possible to encode the message with python2 and decode it with `python3`, `julia` or any other language.
 - Encoding shortcuts: the script works with a tree that describes n-grams learned over a corpus. Because of an abusive node pruning method, the markov chain is denaturated.
-- Difficulty to understand the previous code (no documentation + too many pointers manipulation)
 
 The two first issues are described and illustrated in the associated [blog post](https://japoneris.neocities.org/tech/2022/09/01/plainsight_v2.html).
 The goals of this re-implementation are:
 
 - to make the outputs language-independent
 - to provide a better encoding function
-- to make the code easier to understand (we have on average the same number of LoC. However, we have documentation included in) 
 
 
 
@@ -39,7 +37,7 @@ To make the script executable without `python` prefixing, do: `chmod +x run.py`
 
 ## Folder organization
 
-- `src/`: where are stored the **scripts**
+- `src/`: where are stored the **Tree class** and **encoding/decoding** methods
 - `raw/`: where are stored **non-processed corpus**
 - `corpus/`: where are stored **processed corpus**
 - `examples/`: encoded / decoded messages 
