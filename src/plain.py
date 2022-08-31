@@ -52,26 +52,32 @@ class Tree:
         """
 
         k  = len(self.children)
-        if k <= 1:
+        if k  == 0:
+            # Nothing to do
             return
-        
-        nk = int(math.log2(k))
-        k  = int(2**nk) # keep the lowest power of 2
-        
-        # Sort lexicographic and frequency.
-        # Keep the k best items
-        # The minus is to get decreasing frequency AND ascending lexicographic
-        self.children   = sorted(self.children, key=lambda x: (-x.freq, x.name))[:k]
-        self.child_name = list(map(lambda x: x.name, self.children))
-        
-        
-        # Add a binary code to each item
-        list(map(lambda x: x[1].set_bin_code(x[0], nk), enumerate(self.children)))
-        
-        # Iterate over childrens
-        list(map(lambda x: x.clean_pow2(), self.children))
 
-        return
+        elif k == 1:
+            # Trivial choice, just move to the unique children
+            self.children[0].clean_pow2()
+            return 
+
+        else:
+        
+            nk = int(math.log2(k))
+            k  = int(2**nk) # keep the lowest power of 2
+        
+            # Sort lexicographic and frequency.
+            # The minus is to get decreasing frequency AND ascending lexicographic
+            self.children   = sorted(self.children, key=lambda x: (-x.freq, x.name))#[:k]
+            self.child_name = list(map(lambda x: x.name, self.children))
+        
+        
+            # Add a binary code to each of the best items
+            list(map(lambda x: x[1].set_bin_code(x[0], nk), enumerate(self.children[:k])))
+        
+            # Iterate over childrens
+            list(map(lambda x: x.clean_pow2(), self.children))
+            return
 
     def _get_huffman(self, freqs):
         """
@@ -142,15 +148,22 @@ class Tree:
             
             bits_pad = bits + "0" * 8 # 8 is sufficient
 
-            cands = list(filter(lambda x: bits_pad.startswith(x.code), self.children))
+            cands   = list(filter(lambda x: bits_pad.startswith(x.code), self.children))
+            cands_0 = list(filter(lambda x: len(x.code) > 0, cands))
+            # cands_0 does not impact Huffman
+            
             # Normally, one candidate.
-            if len(cands) == 1:
-                c = cands[0]
+            if len(cands_0) == 1:
+                c = cands_0[0]
                 return (c.name, bits[len(c.code):])
 
             elif len(cands) == 0:
                 print("No code found...")
+                # Happens with "Binary" setting
+                # Needs to remove items from the context
+                # return ("", bits)
                 assert(False)
+            
             else:
                 #print("Too many solutions ...")
                 # Happens when start the tree
@@ -160,9 +173,13 @@ class Tree:
         
         else:
             # Move in the tree
-            i = self.child_name.index(seq[0])
-            return self.children[i].get_word(seq[1:], bits)
-
+            if seq[0] in self.child_name:
+                i = self.child_name.index(seq[0])
+                return self.children[i].get_word(seq[1:], bits)
+            
+            else:
+                # Binary case
+                return ("", bits)
 
     
     def get_code(self, seq):
@@ -174,9 +191,15 @@ class Tree:
         """
         if seq == []:
             return self.code
+        
         else:
-            i = self.child_name.index(seq[0])
-            return self.children[i].get_code(seq[1:])
+            if seq[0] in self.child_name:
+                i = self.child_name.index(seq[0])
+                return self.children[i].get_code(seq[1:])
+            
+            else:
+                # Case binary where the context does not exist
+                return None
 
         
 ### Encode / Decode function
@@ -209,6 +232,10 @@ def encode(tree, message):
             context = ['<TOP>']
             message_mem.append(" ".join(message_code))
             message_code = []
+        
+        elif wd == "":
+            # Case binary where context does not match at all
+            context.pop(0)
 
         else:
             # Extend the current sentence
@@ -219,6 +246,7 @@ def encode(tree, message):
             if len(context) > d1:
                 context = context[-d1:]
                 # Remove when too many 
+    
     # End of the loop
     if len(message_code) > 0:
         # Add the current sentence to the full message.
@@ -238,17 +266,22 @@ def decode(tree, message):
     """
     d = tree.depth
     
+    
     message_mem = message.split("\n")
     context = []
     message_code = []
     bin_list = []
 
-    while (message_mem != []) | (message_code != []):
+    while True:
 
-        if message_code == []:
+        if (message_mem != []) & (message_code == []):
             # Take a new sentence if no words left
-            message_code = message_mem.pop(0).split()
+            message_code = message_mem.pop(0).split() + ["<BOT>"]
             context = ["<TOP>"]
+
+        elif (message_mem == []) & (message_code == []):
+            # End condition
+            break
 
         # Remove one item from the input, add it to the context
         context.append(message_code.pop(0))
@@ -256,11 +289,18 @@ def decode(tree, message):
             context = context[-d:]
 
         # Find the corresponding code
-        b = tree.get_code(context)
-        bin_list.append(b)
+        b = None
+        while True:
+            b = tree.get_code(context)
+            if b is None:
+                context.pop(0)
+            else:
+                bin_list.append(b)
+                break
+
 
     bin_string = "".join(bin_list)
-    n_bytes = len(bin_string) // 8
+    n_bytes    = len(bin_string) // 8
     char_list  = [chr(int(bin_string[8*i:8*(i+1)], 2)) for i in range(n_bytes)]
     
     return "".join(char_list)
