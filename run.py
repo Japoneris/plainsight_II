@@ -35,6 +35,12 @@ if __name__ == "__main__":
             default=False,
             help="Print encoded/decoded message.")
     
+    """
+    parser.add_argument("-c", "--character", action="store_true",
+            default=False,
+            help="Corpus read at the character level (select a large d).")
+    """
+
     args = parser.parse_args()
 
     d = args.depth
@@ -76,10 +82,12 @@ if __name__ == "__main__":
     tree = plain.Tree(depth=d)
     
     # Build n-grams
+    # Word transition
     for sentence in corpus:
         seq = ["<TOP>"] + sentence.split() + ["<BOT>"]
         for i in range(len(seq)-1): # -1 because do not iterate over BOT token
             tree.update(seq[i:i+d])
+
 
     if args.method == "Huffman":
         for c in tree.children:
@@ -95,7 +103,8 @@ if __name__ == "__main__":
         print("Encoding")
         
         encoded_message = plain.encode(tree, message)
-        
+            
+
 
         print("==> Converted into {} words".format(len(encoded_message.split())))
         
@@ -103,7 +112,7 @@ if __name__ == "__main__":
         with open(args.save_path + ".enc", "w") as fp:
             fp.write(encoded_message)
         
-
+        
         if args.verbose:
             print()
             print("=== Message: ===")
@@ -112,6 +121,7 @@ if __name__ == "__main__":
 
     elif args.action == "decode":
         print("Decoding")
+
         decoded_message = plain.decode(tree, message)
     
         print("==> Revovered {} characters".format(len(decoded_message)))
